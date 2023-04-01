@@ -1,5 +1,6 @@
 const path = require('path');
 
+const dotenv = require('dotenv').config({ path: `${__dirname}/.env` });
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
@@ -114,6 +115,7 @@ module.exports = (env, argv) => [
 			}),
 			new webpack.NoEmitOnErrorsPlugin(),
 			new webpack.DefinePlugin({
+				'process.env': JSON.stringify(dotenv.parsed),
 				'process.env.NODE_ENV': JSON.stringify(argv.mode === 'production' ? 'production' : 'development'),
 			}),
 			new HtmlWebpackPlugin({

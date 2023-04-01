@@ -37,6 +37,7 @@
 		"@storybook/addon-viewport": "~6.5.15",
 		"@storybook/react": "~6.5.15",
 		"@storybook/theming": "~6.5.15",
+		"@types/react-google-recaptcha": "^2",
 		"@typescript-eslint/eslint-plugin": "^5.30.7",
 		"@typescript-eslint/parser": "^5.30.7",
 		"autoprefixer": "^9.8.8",
@@ -92,6 +93,7 @@
 		"crypto-js": "^4.1.1",
 		"css-vars-ponyfill": "^2.4.7",
 		"date-fns": "^2.15.0",
+		"dotenv": "^16.0.3",
 		"emoji-mart": "^3.0.1",
 		"history": "^5.3.0",
 		"i18next": "^21.8.10",
@@ -101,6 +103,7 @@
 		"preact": "^10.8.2",
 		"preact-router": "^3.2.1",
 		"query-string": "^7.1.1",
+		"react-google-recaptcha": "^2.1.0",
 		"react-i18next": "^11.16.9",
 		"whatwg-fetch": "^3.6.2"
 	},

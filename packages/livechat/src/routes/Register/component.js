@@ -1,4 +1,6 @@
 import { Component } from 'preact';
+import React from 'react';
+// import ReCAPTCHA from 'react-google-recaptcha';
 import { withTranslation } from 'react-i18next';
 
 import { Button } from '../../components/Button';
@@ -119,10 +121,30 @@ const getDefaultState = (props) => {
 	return state;
 };
 
+const verifyToken = async (token) => {
+	try {
+		const response = await fetch(
+			`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.REACT_APP_SECRET_KEY}&response=${token}`,
+			{
+				method: 'POST',
+			},
+			console.log(token),
+		);
+		return { success: true, message: 'Token successfully verified', data: response.data };
+	} catch (error) {
+		console.log('error ', error);
+		return { success: false, message: 'Error erifying token' };
+	}
+};
+
 class Register extends Component {
 	constructor(props) {
 		super(props);
 		this.state = getDefaultState(props);
+		this.state = {
+			isVerified: false,
+		};
+		this._reCaptchaRef = React.createRef();
 	}
 
 	static getDerivedStateFromProps(nextProps, state) {
@@ -170,13 +192,20 @@ class Register extends Component {
 
 	handleSubmit = (event) => {
 		event.preventDefault();
-
 		if (this.props.onSubmit) {
-			const values = Object.entries(this.state)
-				.filter(([, state]) => state !== null)
-				.map(([name, { value }]) => ({ [name]: value }))
-				.reduce((values, entry) => ({ ...values, ...entry }), {});
-			this.props.onSubmit(values);
+			const token = this._reCaptchaRef.current.getValue();
+			if (token) {
+				const valid_token = verifyToken(token);
+				if (valid_token.success) {
+					const values = Object.entries(this.state)
+						.filter(([, state]) => state !== null)
+						.map(([name, { value }]) => ({ [name]: value }))
+						.reduce((values, entry) => ({ ...values, ...entry }), {});
+					this.props.onSubmit(values);
+				}
+			} else {
+				alert('You must confirm you are not a robot');
+			}
 		}
 	};
 
@@ -231,6 +260,7 @@ class Register extends Component {
 
 						{customFields && renderCustomFields(customFields, { loading, handleFieldChange: this.handleFieldChange }, state, t)}
 
+						{/* <ReCAPTCHA sitekey={process.env.reCAPTCHA_SITE_KEY} ref={this._reCaptchaRef} /> */}
 						<ButtonGroup>
 							<Button submit loading={loading} disabled={!valid || loading} stack>
 								{t('start_chat')}
