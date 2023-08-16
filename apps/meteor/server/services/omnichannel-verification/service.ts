@@ -1,22 +1,3 @@
-<<<<<<< HEAD
-import type { IRoom, IOmnichannelGenericRoom } from '@rocket.chat/core-typings';
-import { RoomVerificationState } from '@rocket.chat/core-typings';
-import { check } from 'meteor/check';
-import type { IOmnichannelVerification, ISetVisitorEmailResult } from '@rocket.chat/core-services';
-import { ServiceClassInternal } from '@rocket.chat/core-services';
-import { LivechatVisitors, LivechatRooms, Users } from '@rocket.chat/models';
-import { Random } from '@rocket.chat/random';
-import { Accounts } from 'meteor/accounts-base';
-import bcrypt from 'bcrypt';
-
-import { sendMessage } from '../../../app/lib/server/functions/sendMessage';
-import { i18n } from '../../lib/i18n';
-import { settings } from '../../../app/settings/server';
-import { Logger } from '../../../app/logger/server';
-import * as Mailer from '../../../app/mailer/server/api';
-import { validateEmailDomain } from '../../../app/lib/server/lib';
-import { checkEmailAvailability } from '../../../app/lib/server/functions';
-=======
 import type { IOmnichannelVerification, ISetVisitorEmailResult } from '@rocket.chat/core-services';
 import { ServiceClassInternal } from '@rocket.chat/core-services';
 import { RoomVerificationState } from '@rocket.chat/core-typings';
@@ -26,6 +7,7 @@ import { Random } from '@rocket.chat/random';
 import bcrypt from 'bcrypt';
 import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
+// import type { UpdateResult } from 'mongodb';
 
 import { checkEmailAvailability } from '../../../app/lib/server/functions/checkEmailAvailability';
 import { sendMessage } from '../../../app/lib/server/functions/sendMessage';
@@ -34,7 +16,6 @@ import { Logger } from '../../../app/logger/server';
 import * as Mailer from '../../../app/mailer/server/api';
 import { settings } from '../../../app/settings/server';
 import { i18n } from '../../lib/i18n';
->>>>>>> 0ad49970bd37955cb02048ac671d3d0712c960a7
 
 interface IRandomOTP {
 	random: string;
@@ -235,7 +216,6 @@ export class OmnichannelVerification extends ServiceClassInternal implements IOm
 				}
 				return { success: false, error: error as Error };
 			}
-
 			const visitor = await LivechatVisitors.findOneById(userId, {
 				projection: {
 					visitorEmails: 1,
@@ -249,23 +229,18 @@ export class OmnichannelVerification extends ServiceClassInternal implements IOm
 			if (visitor?.visitorEmails?.length && visitor.visitorEmails[0].address === email) {
 				return { success: true };
 			}
-
 			// Check email availability
-			if (!(await checkEmailAvailability(email))) {
-				throw new Error('error-email-unavailable');
-			}
+			const isEmailAvailable = await checkEmailAvailability(email);
+			if (!isEmailAvailable) {
+				const message = {
+					msg: i18n.t('Sorry, this email is already in use'),
+					groupable: false,
+				};
+				await sendMessage(bot, message, room);
 
-			// Set new email
-			const updateVisitor = {
-				$set: {
-					visitorEmails: [
-						{
-							address: email,
-						},
-					],
-				},
-			};
-			await LivechatVisitors.updateById(userId, updateVisitor);
+				return { success: false };
+			}
+			await LivechatVisitors.setVisitorsEmail(userId, email);
 			const result = {
 				success: true,
 			};
